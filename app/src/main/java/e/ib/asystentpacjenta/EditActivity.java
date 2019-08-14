@@ -3,12 +3,17 @@ package e.ib.asystentpacjenta;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
@@ -20,6 +25,39 @@ import e.ib.asystentpacjenta.businesstier.service.Fetcher;
 import e.ib.asystentpacjenta.businesstier.service.HintDAO;
 
 public class EditActivity extends Activity {
+
+    private class SecondFetcher extends Fetcher {
+
+        public SecondFetcher(List<Hint> list, List<Integer> position, ArrayAdapter<String> adapter) {
+            super(list, position, adapter);
+        }
+
+        @Override
+        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+            super.onComplete(task);
+            id = getIntent().getLongExtra("getId", -1);
+            selected = searchHint(id);
+            mode = getIntent().getIntExtra("mode", -2);
+            mode_tv.setText(getString(R.string.em_tv_mode) + " " + getString(mode));
+
+            if(mode != R.string.am_btn_add) {
+                if(selected != null) {
+                    chosen_tv.setText(selected.getToken());
+                } else {
+                    i = new Intent(getApplicationContext(), MainActivity.class);
+                    i.putExtra("resp", -1);
+                    finish();
+                    startActivity(i);
+                }
+            } else chosen_tv.setText("-");
+
+            if(mode == R.string.am_btn_modify){
+                new_token.setText( getIntent().getStringExtra("getToken") );
+                new_info.setText( getIntent().getStringExtra("getInfo") );
+            }
+        }
+    }
+
 
     private Intent i;
 
@@ -56,28 +94,7 @@ public class EditActivity extends Activity {
         mode_tv = (TextView) findViewById(R.id.mode_tv);
         chosen_tv = (TextView) findViewById(R.id.chosen_tv);
 
-        HintDAO.fetchAll(getApplicationContext()).addOnCompleteListener(new Fetcher(hints, new ArrayList<>(), null));
-
-        id = getIntent().getLongExtra("getId", -1);
-        selected = searchHint(id);
-        mode = getIntent().getIntExtra("mode", -2);
-        mode_tv.setText(getString(R.string.em_tv_mode) + " " + getString(mode));
-
-        if(mode != R.string.am_btn_add) {
-            if(selected != null) {
-                chosen_tv.setText(selected.getToken());
-            } else {
-                i = new Intent(getApplicationContext(), MainActivity.class);
-                i.putExtra("resp", -1);
-                finish();
-                startActivity(i);
-            }
-        } else chosen_tv.setText("-");
-
-        if(mode == R.string.am_btn_modify){
-            new_token.setText( getIntent().getStringExtra("getToken") );
-            new_info.setText( getIntent().getStringExtra("getInfo") );
-        }
+        HintDAO.fetchAll(getApplicationContext()).addOnCompleteListener(new SecondFetcher(hints, new ArrayList<>(), null));
 
     }
 
@@ -108,6 +125,7 @@ public class EditActivity extends Activity {
             HintDAO.remove(getApplicationContext(), h).addOnCompleteListener(RETURN_OK).addOnFailureListener(RETURN_NOT_OK);
             i.putExtra("resp", 3);
         } else {
+            Log.d("XDDDDDDDDDDDDDDDDDDDDDDDDDDDd", String.valueOf(-1));
             i.putExtra("resp", -1);
         }
 
@@ -116,7 +134,9 @@ public class EditActivity extends Activity {
     private Hint searchHint(long id){
         Hint h = new Hint();
         h.setId(id);
+        Log.d("INPUTTTTTTT", String.valueOf(id));
         for(Hint hint : hints){
+            Log.d("HINTTTTTTTTTTTTTTTTTTT", String.valueOf(hint.getId()));
             if(hint.equals(h)){
                 return hint;
             }

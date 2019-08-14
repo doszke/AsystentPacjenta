@@ -35,6 +35,8 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends Activity implements AdapterView.OnItemSelectedListener {
 
     private List<Hint> hints = new ArrayList<>();
+    private int selected = 0;
+
 
     private TextView text_info;
     private EditText text_token;
@@ -87,20 +89,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 position.clear();
                 Log.d("DEBUG", text_token.getText().toString());
                 String inputs = text_token.getText().toString().toLowerCase();
-
-                /*
-                na potem
-
-                List<String> tokens = new ArrayList<>(hints.size());
-        int x = 0;
-        for(Hint h : hints){
-            position.add(Math.toIntExact(x++));
-            tokens.add(h.getToken());
-        }
-
-        adapter.addAll(tokens);
-        hintSpinner.setAdapter(adapter);
-                 */
 
 
                 /*
@@ -159,8 +147,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        int pos = this.position.get(position);
-        text_info.setText(hints.get(pos).getInfo());
+        selected = this.position.get(position);
+        text_info.setText(hints.get(selected).getInfo());
     }
 
     @Override
@@ -176,12 +164,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     }
 
     public void onClickEdit(View view) {
-        Hint h = hints.get(position.get((int) hintSpinner.getSelectedItemId()));
+        Hint h = hints.get(position.get(selected));
         Intent intent = new Intent(getApplicationContext(), EditActivity.class);
         intent.putExtra("mode", R.string.am_btn_modify);
         intent.putExtra("getId", h.getId());
         intent.putExtra("getToken", h.getToken());
         intent.putExtra("getInfo", h.getInfo());
+        //intent.putExtra("selected", selected);
         startActivity(intent);
     }
 
@@ -190,6 +179,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         intent.putExtra("mode", R.string.am_btn_delete);
         Log.d("XDDDDDDDDDDD2", String.valueOf(hints.get(position.get((int) hintSpinner.getSelectedItemId())).getId()));
         intent.putExtra("getId", hints.get(position.get((int) hintSpinner.getSelectedItemId())).getId());
+        //intent.putExtra("selected", selected);
         startActivity(intent);
     }
 
